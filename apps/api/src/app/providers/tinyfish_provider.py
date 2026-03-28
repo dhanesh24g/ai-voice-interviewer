@@ -63,7 +63,7 @@ class MockTinyFishProvider(TinyFishProvider):
         )
 
     async def fetch_page_async(self, url: str) -> TinyFishResult:
-        await asyncio.sleep(0)
+        await asyncio.sleep(0.35)
         return self.fetch_page(url)
 
     async def fetch_many_async(self, urls: list[str]) -> list[TinyFishResult]:
@@ -72,6 +72,7 @@ class MockTinyFishProvider(TinyFishProvider):
     async def stream_progress(self, urls: list[str]):
         for index, url in enumerate(urls, start=1):
             result = await self.fetch_page_async(url)
+            await asyncio.sleep(0.8)
             yield {"index": index, "total": len(urls), "url": url, "status": "completed", "result": result.raw}
 
 
