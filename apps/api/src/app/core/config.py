@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     app_host: str = "0.0.0.0"
     app_port: int = 8000
     debug: bool = True
-    backend_cors_origins: list[str] = Field(
-        default=["http://localhost:3000", "http://127.0.0.1:3000"],
+    backend_cors_origins: str = Field(
+        default="http://localhost:3000,http://127.0.0.1:3000",
         alias="BACKEND_CORS_ORIGINS",
     )
 
@@ -39,13 +39,6 @@ class Settings(BaseSettings):
     tinyfish_timeout_seconds: int = Field(default=45, alias="TINYFISH_TIMEOUT_SECONDS")
     tinyfish_stealth: bool = Field(default=True, alias="TINYFISH_STEALTH")
     tinyfish_use_mock: bool = Field(default=True, alias="TINYFISH_USE_MOCK")
-
-    @field_validator("backend_cors_origins", mode="before")
-    @classmethod
-    def parse_cors_origins(cls, value):
-        if isinstance(value, str):
-            return [item.strip() for item in value.split(",") if item.strip()]
-        return value
 
 
 @lru_cache
