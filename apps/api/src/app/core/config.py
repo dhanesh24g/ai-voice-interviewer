@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +26,20 @@ class Settings(BaseSettings):
 
     database_url: str = Field(default="sqlite:///./tinyfish_ai.db", alias="DATABASE_URL")
     sqlite_fallback_url: str = Field(default="sqlite:///./tinyfish_ai.db", alias="SQLITE_FALLBACK_URL")
+
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def normalize_database_url(cls, v: str) -> str:
+        """Normalize PostgreSQL URLs to use psycopg2 dialect.
+        
+        SQLAlchemy defaults to psycopg3 for 'postgresql://' URLs,
+        but we use psycopg2-binary. This validator ensures compatibility.
+        """
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+psycopg2://", 1)
+        elif v.startswith("postgresql+psycopg://"):
+            return v.replace("postgresql+psycopg://", "postgresql+psycopg2://", 1)
+        return v
 
     supabase_url: str | None = Field(default=None, alias="SUPABASE_URL")
     supabase_anon_key: str | None = Field(default=None, alias="SUPABASE_ANON_KEY")
