@@ -14,13 +14,6 @@ def get_engine():
     """Lazy engine creation - only called when database is actually used."""
     settings = get_settings()
     database_url = settings.database_url or settings.sqlite_fallback_url
-
-    # Convert psycopg3 (postgresql+psycopg) to psycopg2 (postgresql+psycopg2) if needed
-    if "postgresql+psycopg" in database_url and "psycopg2" not in database_url:
-        database_url = database_url.replace("postgresql+psycopg", "postgresql+psycopg2")
-    if database_url.startswith("postgresql://") and not database_url.startswith("postgresql+psycopg"):
-        database_url = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
-
     engine_kwargs = {
         "future": True,
         "pool_pre_ping": True,

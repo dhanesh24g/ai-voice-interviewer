@@ -16,6 +16,12 @@ dependencies = [
   "python-dotenv>=1.0.1",
   "supabase>=2.7.4",
   "psycopg2-binary==2.9.9",
+  "tinyfish>=0.2.5",
+  "langchain>=0.3.0",
+  "langgraph>=0.2.14",
+  "beautifulsoup4>=4.12.3",
+  "trafilatura>=1.12.2",
+  "readability-lxml>=0.8.1",
 ]
 
 [project.optional-dependencies]

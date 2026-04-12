@@ -49,7 +49,7 @@ export function HeroSection({ onStartResearch }: HeroSectionProps) {
           </div>
           <div className="text-center">
             <h1 className="text-4xl md:text-[3.15rem] font-bold leading-tight">
-              <span className="neon-text text-primary">AI Career</span>{" "}
+              <span className="neon-text text-primary">AI Voice</span>{" "}
               <span className="text-foreground">Interview Agent</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-4xl">
@@ -72,7 +72,7 @@ export function HeroSection({ onStartResearch }: HeroSectionProps) {
                   Interview Setup
                 </p>
                 <h2 className="text-2xl md:text-[2rem] font-semibold text-foreground">Job Posting</h2>
-                
+
               </div>
 
               <div className="glass rounded-2xl border border-primary/15 p-3.5">
@@ -96,14 +96,14 @@ export function HeroSection({ onStartResearch }: HeroSectionProps) {
                   className="bg-secondary/50 border-border/50 focus:border-primary h-12 text-base text-foreground placeholder:text-muted-foreground"
                   required
                 />
-                
+
               </div>
             </section>
 
             <section className="space-y-3">
               <div>
                 <h2 className="text-2xl md:text-[2rem] font-semibold text-foreground">Candidate Profile</h2>
-                
+
               </div>
 
               <div className="grid md:grid-cols-2 gap-3">
@@ -149,7 +149,7 @@ export function HeroSection({ onStartResearch }: HeroSectionProps) {
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">Voice-first mock interview workflow</p>
-                
+
               </div>
             </div>
 
