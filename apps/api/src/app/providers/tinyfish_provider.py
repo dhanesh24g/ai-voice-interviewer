@@ -213,7 +213,12 @@ class HttpTinyFishProvider(TinyFishProvider):
             with self.client.agent.stream(url=url, goal=goal) as stream:
                 for event in stream:
                     try:
-                        collected.append(self._coerce_event(event))
+                        coerced = self._coerce_event(event)
+                        collected.append(coerced)
+                        event_type = coerced.get("type", "")
+                        if event_type == "COMPLETE":
+                            logger.info(f"[HOP:TINYFISH_COMPLETE] COMPLETE event received | {time.time() - t0:.1f}s | url={url}")
+                            break
                     except Exception:
                         continue
             return collected
