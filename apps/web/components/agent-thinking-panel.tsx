@@ -52,20 +52,39 @@ export function AgentThinkingPanel({ jobInput, onComplete, onBack }: AgentThinki
         setProgress(6)
         setCompletedSteps([])
         setLogs([
-          `> Initializing TinyFish interview workflow for ${jobInput.firstName}...`,
-          `> Navigating to ${jobInput.jobPostingUrl}`,
+          `> Initializing interview workflow for ${jobInput.firstName}...`,
+          `> Opening job posting page...`,
         ])
+
+        // Smooth progress animation
+        const smoothProgress = (target: number, duration: number = 800) => {
+          const start = progress
+          const startTime = Date.now()
+          const animate = () => {
+            if (!isMounted) return
+            const elapsed = Date.now() - startTime
+            const ratio = Math.min(elapsed / duration, 1)
+            const current = start + (target - start) * ratio
+            setProgress(Math.round(current))
+            if (ratio < 1) requestAnimationFrame(animate)
+          }
+          requestAnimationFrame(animate)
+        }
+
+        smoothProgress(15)
         const jobTarget = await extractJobTarget(jobInput.jobPostingUrl)
         if (!isMounted) return
 
         setCompletedSteps([0])
-        setProgress(24)
+        smoothProgress(25)
         setLogs((prev) => [
           ...prev,
-          `> Extracted role: ${jobTarget.role_title || "Unknown role"} at ${jobTarget.company_name || "Unknown company"}`,
+          `✓ Found ${jobTarget.role_title || "role"} at ${jobTarget.company_name || "company"}`,
+          `> Analyzing job requirements...`,
         ])
 
         setCurrentStep(1)
+        setLogs((prev) => [...prev, `> Researching interview patterns...`])
         await streamResearch(jobTarget.id, (payload) => {
           if (!isMounted) return
 
@@ -74,18 +93,26 @@ export function AgentThinkingPanel({ jobInput, onComplete, onBack }: AgentThinki
             const total = Number(payload.total || 1)
             const url = String(payload.url || "")
             const status = String(payload.status || "running")
-            setProgress(24 + Math.round((index / Math.max(total, 1)) * 50))
-            setLogs((prev) => [...prev, `[TinyFish] ${status.toUpperCase()} ${url}`])
+            const progressPercent = 25 + Math.round((index / Math.max(total, 1)) * 50)
+            smoothProgress(progressPercent, 400)
+
+            // User-friendly domain extraction
+            const domain = url.replace(/^https?:\/\//, '').split('/')[0].replace('www.', '')
+            if (status === "completed") {
+              setLogs((prev) => [...prev, `✓ Analyzed ${domain}`])
+            } else if (status === "running") {
+              setLogs((prev) => [...prev, `> Browsing ${domain}...`])
+            }
           }
 
           if (payload.type === "complete") {
             setCompletedSteps([0, 1, 2])
             setCurrentStep(3)
-            setProgress(82)
+            smoothProgress(80)
             setLogs((prev) => [
               ...prev,
-              `> TinyFish completed web collection from ${payload.source_count || 0} sources`,
-              `> Building interview session from ranked signals...`,
+              `✓ Research complete - ${payload.source_count || 0} sources analyzed`,
+              `> Ranking interview questions...`,
             ])
           }
         })
@@ -99,15 +126,21 @@ export function AgentThinkingPanel({ jobInput, onComplete, onBack }: AgentThinki
           questions,
         }
 
+        smoothProgress(90)
+        setLogs((prev) => [
+          ...prev,
+          `✓ ${completeResearchResult.questions.length} questions prepared`,
+          `> Setting up voice interview session...`,
+        ])
         const interviewSession = await startInterviewSession(jobTarget.id, "voice")
         if (!isMounted) return
 
         setCompletedSteps([0, 1, 2, 3])
-        setProgress(100)
+        smoothProgress(100)
         setLogs((prev) => [
           ...prev,
-          `> Interview session ready with ${completeResearchResult.questions.length} ranked prompts`,
-          `> Handing off to the live interviewer`,
+          `✓ Interview session ready`,
+          `> Starting voice interview...`,
         ])
 
         const elapsed = Date.now() - workflowStartedAt
@@ -190,22 +223,20 @@ export function AgentThinkingPanel({ jobInput, onComplete, onBack }: AgentThinki
               return (
                 <div
                   key={step.id}
-                  className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? "glass-card neon-border"
-                      : isCompleted
-                        ? "glass-card border border-primary/30"
-                        : "glass opacity-50"
-                  }`}
+                  className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${isActive
+                    ? "glass-card neon-border"
+                    : isCompleted
+                      ? "glass-card border border-primary/30"
+                      : "glass opacity-50"
+                    }`}
                 >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                      isCompleted
-                        ? "bg-primary/20 text-primary"
-                        : isActive
-                          ? "bg-primary/10 text-primary animate-pulse"
-                          : "bg-secondary text-muted-foreground"
-                    }`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isCompleted
+                      ? "bg-primary/20 text-primary"
+                      : isActive
+                        ? "bg-primary/10 text-primary animate-pulse"
+                        : "bg-secondary text-muted-foreground"
+                      }`}
                   >
                     {isCompleted ? (
                       <CheckCircle2 className="w-5 h-5" />

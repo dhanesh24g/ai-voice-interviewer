@@ -89,10 +89,12 @@ class HttpTinyFishProvider(TinyFishProvider):
 
         self.client = TinyFish(api_key=self.settings.tinyfish_api_key)
         self.job_extraction_goal = (
-            "Open this job page and finish quickly. Return a structured JSON object with exactly these fields: "
-            "title, company_name, role_title, job_description, confidence, text, html. "
+            "Open this job page and extract the job posting details. Return a structured JSON object with exactly these fields: "
+            "title, company_name (the ACTUAL hiring company, NOT the job board like Greenhouse/Lever/LinkedIn), "
+            "role_title, job_description, confidence, text, html. "
             "Keep job_description concise, max 1200 characters. "
             "Confidence must be a number between 0 and 1. "
+            "Focus on the main job content, ignore platform metadata and navigation elements. "
             "Do not browse beyond what is necessary on this page."
         )
         self.research_goal = (
