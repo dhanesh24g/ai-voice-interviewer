@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -68,11 +68,17 @@ def root() -> str:
 # Favicon.ico endpoint for browsers looking at root
 @app.get("/favicon.ico")
 def favicon_ico() -> FileResponse:
-    return FileResponse(static_dir / "favicon.ico")
+    favicon_path = static_dir / "favicon.ico"
+    if not favicon_path.exists():
+        raise HTTPException(status_code=404, detail="Favicon not found")
+    return FileResponse(favicon_path)
 
 # Favicon.png endpoint for browsers looking at root
 @app.get("/favicon.png")
 def favicon_png() -> FileResponse:
-    return FileResponse(static_dir / "favicon.png")
+    favicon_path = static_dir / "favicon.png"
+    if not favicon_path.exists():
+        raise HTTPException(status_code=404, detail="Favicon not found")
+    return FileResponse(favicon_path)
 
 app.include_router(api_router)
