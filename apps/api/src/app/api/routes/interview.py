@@ -1,7 +1,11 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, get_services
+
+logger = logging.getLogger(__name__)
 from app.schemas.evaluation import FeedbackReportResponse
 from app.schemas.interview import InterviewSessionEventRequest, InterviewSessionResponse, InterviewSessionStartRequest
 from app.services.container import ServiceContainer
@@ -37,7 +41,11 @@ def post_session_event(
     job_target = JobTargetRepository(db).get(session.job_target_id)
     if not job_target:
         raise HTTPException(status_code=404, detail="Job target not found")
-    return svc.handle_event(session, job_target, payload.event_type, payload.payload)
+    try:
+        return svc.handle_event(session, job_target, payload.event_type, payload.payload)
+    except Exception as exc:
+        logger.exception(f"[EVENT_ERROR] session={session_id} event={payload.event_type} | {type(exc).__name__}: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to process event: {type(exc).__name__}")
 
 
 @router.post("/session/{session_id}/stop", response_model=InterviewSessionResponse)

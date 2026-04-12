@@ -66,15 +66,18 @@ class InterviewService:
             datetime.now(timezone.utc),
             user_response=normalized,
         )
-        evaluation = self.evaluation_agent.evaluate_answer(current_question, normalized, job_target.job_description or "")
+        try:
+            evaluation = self.evaluation_agent.evaluate_answer(current_question, normalized, job_target.job_description or "")
+        except Exception:
+            evaluation = {"score": 0, "strengths": [], "weaknesses": ["Evaluation failed"], "missing_points": [], "suggestion": None}
         self.evaluation_repo.create_evaluation(
             {
                 "session_id": session.id,
                 "turn_id": answer_turn.id,
-                "score": evaluation["score"],
-                "strengths": evaluation["strengths"],
-                "weaknesses": evaluation["weaknesses"],
-                "missing_points": evaluation["missing_points"],
+                "score": evaluation.get("score", 0),
+                "strengths": evaluation.get("strengths", []),
+                "weaknesses": evaluation.get("weaknesses", []),
+                "missing_points": evaluation.get("missing_points", []),
                 "suggestion": evaluation.get("suggestion"),
                 "raw_payload": evaluation,
                 "created_at": datetime.now(timezone.utc),
