@@ -104,7 +104,14 @@ class OpenAILLMProvider(LLMProvider):
 
     def extract_job_metadata(self, raw_text: str, url: str) -> dict[str, Any]:
         template = (
-            "Extract company_name, role_title, job_description, confidence from this job posting for {url}:\n{raw_text}"
+            "Extract job posting details from the following content. Return JSON with these fields:\n"
+            "- company_name (string): The ACTUAL hiring company, NOT the job board platform. "
+            "Ignore platforms like Greenhouse, Lever, Workday, LinkedIn, Indeed, etc.\n"
+            "- role_title (string): The job position title\n"
+            "- job_description (string): Key responsibilities and requirements (max 1200 chars)\n"
+            "- confidence (number): 0-1 score for extraction quality\n\n"
+            "URL: {url}\n\n"
+            "Content:\n{raw_text}"
         )
         return self._json_completion(PromptTemplate.from_template(template).format(url=url, raw_text=raw_text))
 
@@ -152,7 +159,12 @@ class OpenAILLMProvider(LLMProvider):
 
     def generate_feedback(self, transcript: str, evaluations: list[dict[str, Any]]) -> dict[str, Any]:
         template = (
-            "Generate final interview feedback. Return summary, overall_score, strengths, improvement_areas, prep_guidance.\n"
+            "Generate final interview feedback. Return JSON with these exact fields:\n"
+            "- summary (string): Overall interview summary\n"
+            "- overall_score (number): 0-1 score\n"
+            "- strengths (array of strings): List of strengths\n"
+            "- improvement_areas (array of strings): List of areas to improve\n"
+            "- prep_guidance (array of strings): List of 3-5 specific preparation tips\n\n"
             "Transcript:\n{transcript}\nEvaluations:\n{evaluations}"
         )
         return self._json_completion(

@@ -13,5 +13,15 @@ class JobExtractionAgent:
         result = self.tinyfish.fetch_page(url)
         return {"url": url, "raw": result.raw, "text": result.text, "metadata": result.metadata}
 
-    def extract_job_metadata(self, url: str, raw_text: str) -> dict:
+    def extract_job_metadata(self, url: str, raw_text: str, tinyfish_metadata: dict | None = None) -> dict:
+        """Extract job metadata, preferring TinyFish's extraction if available."""
+        # If TinyFish already extracted metadata, use it (it's more accurate for structured data)
+        if tinyfish_metadata and tinyfish_metadata.get("company_name"):
+            return {
+                "company_name": tinyfish_metadata.get("company_name"),
+                "role_title": tinyfish_metadata.get("role_title"),
+                "job_description": tinyfish_metadata.get("job_description", raw_text[:1200]),
+                "confidence": tinyfish_metadata.get("confidence", 0.9),
+            }
+        # Fallback to LLM extraction if TinyFish didn't provide metadata
         return self.llm.extract_job_metadata(raw_text=raw_text, url=url)

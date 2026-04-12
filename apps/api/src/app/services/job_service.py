@@ -50,7 +50,12 @@ class JobService:
 
         try:
             fetched = self.agent.fetch_job_posting_with_tinyfish(url)
-            metadata = self.agent.extract_job_metadata(url=url, raw_text=fetched["text"])
+            # Pass TinyFish metadata to avoid re-processing (TinyFish already extracted it correctly)
+            metadata = self.agent.extract_job_metadata(
+                url=url, 
+                raw_text=fetched["text"],
+                tinyfish_metadata=fetched.get("raw")  # TinyFish's extracted metadata
+            )
             raw_tinyfish_result = fetched["raw"]
             raw_page_text = fetched["text"]
             status = "extracted"
