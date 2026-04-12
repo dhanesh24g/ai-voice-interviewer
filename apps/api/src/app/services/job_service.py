@@ -80,6 +80,18 @@ class JobService:
             }
             raw_page_text = ""
             status = "extracted"
+        except Exception as e:
+            logger.exception(f"Unexpected error during TinyFish extraction for {url}: {type(e).__name__}: {e}")
+            # Still use fallback but log the actual error
+            metadata = self._fallback_metadata_from_url(url)
+            raw_tinyfish_result = {
+                "provider": "tinyfish_sdk",
+                "url": url,
+                "error": str(type(e).__name__),
+                "note": f"Extraction failed: {str(e)}",
+            }
+            raw_page_text = ""
+            status = "extracted"
 
         return self.repo.update_extraction(
             job_target,

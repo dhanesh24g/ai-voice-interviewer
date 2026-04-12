@@ -90,9 +90,12 @@ class MockTinyFishProvider(TinyFishProvider):
 class HttpTinyFishProvider(TinyFishProvider):
     def __init__(self) -> None:
         self.settings = get_settings()
+        logger.info("HttpTinyFishProvider.__init__ called")
         try:
             from tinyfish import TinyFish
+            logger.info("TinyFish SDK imported successfully")
         except ImportError as exc:  # pragma: no cover
+            logger.error("Failed to import TinyFish SDK")
             raise RuntimeError(
                 "TinyFish SDK is not installed. Run `pip install tinyfish>=0.2.5`."
             ) from exc
@@ -100,7 +103,12 @@ class HttpTinyFishProvider(TinyFishProvider):
         # Initialize TinyFish SDK
         # Note: Timeout is handled at the wrapper level via ThreadPoolExecutor
         # The SDK doesn't expose a timeout parameter in its constructor
-        self.client = TinyFish(api_key=self.settings.tinyfish_api_key)
+        try:
+            self.client = TinyFish(api_key=self.settings.tinyfish_api_key)
+            logger.info("TinyFish client initialized successfully")
+        except Exception as e:
+            logger.exception(f"Failed to initialize TinyFish client: {e}")
+            raise
         self.job_extraction_goal = (
             "Open this job page and extract the job posting details. Return a structured JSON object with exactly these fields: "
             "title, company_name (the ACTUAL hiring company, NOT the job board like Greenhouse/Lever/LinkedIn), "
@@ -206,22 +214,48 @@ class HttpTinyFishProvider(TinyFishProvider):
         )
 
     def _run_agent(self, url: str, goal: str) -> list[dict[str, Any]]:
-        logger.info(f"TinyFish SDK call: url={url}")
+        import time
+        start_time = time.time()
+        logger.info(f"TinyFish SDK call started: url={url}")
         logger.info(f"TinyFish goal: {goal[:100]}...")  # First 100 chars
         
         def _collect() -> list[dict[str, Any]]:
             collected: list[dict[str, Any]] = []
-            with self.client.agent.stream(url=url, goal=goal) as stream:
-                for event in stream:
-                    collected.append(self._coerce_event(event))
-            return collected
+            event_count = 0
+            try:
+                with self.client.agent.stream(url=url, goal=goal) as stream:
+                    for event in stream:
+                        event_count += 1
+                        try:
+                            coerced = self._coerce_event(event)
+                            collected.append(coerced)
+                        except Exception as e:
+                            logger.warning(f"Failed to coerce event {event_count}: {e}")
+                            # Continue processing other events
+                            continue
+                        
+                        if event_count % 5 == 0:  # Log every 5 events
+                            elapsed = time.time() - start_time
+                            logger.info(f"TinyFish progress: {event_count} events received in {elapsed:.1f}s")
+                elapsed = time.time() - start_time
+                logger.info(f"TinyFish stream completed: {event_count} events in {elapsed:.1f}s")
+                return collected
+            except Exception as e:
+                elapsed = time.time() - start_time
+                logger.exception(f"TinyFish stream failed after {elapsed:.1f}s with {event_count} events: {e}")
+                raise
 
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(_collect)
             try:
-                return future.result(timeout=self.settings.tinyfish_timeout_seconds)
+                result = future.result(timeout=self.settings.tinyfish_timeout_seconds)
+                elapsed = time.time() - start_time
+                logger.info(f"TinyFish SDK call completed successfully in {elapsed:.1f}s")
+                return result
             except FutureTimeoutError as exc:
+                elapsed = time.time() - start_time
                 future.cancel()
+                logger.error(f"TinyFish timed out after {elapsed:.1f}s (limit: {self.settings.tinyfish_timeout_seconds}s)")
                 raise TimeoutError(
                     f"TinyFish timed out after {self.settings.tinyfish_timeout_seconds}s for {url}"
                 ) from exc
@@ -274,8 +308,11 @@ class HttpTinyFishProvider(TinyFishProvider):
 
 def get_tinyfish_provider() -> TinyFishProvider:
     settings = get_settings()
+    logger.info(f"Initializing TinyFish provider: use_mock={settings.tinyfish_use_mock}, has_api_key={bool(settings.tinyfish_api_key)}")
     if settings.tinyfish_use_mock:
+        logger.info("Using MockTinyFishProvider")
         return MockTinyFishProvider()
     if not settings.tinyfish_api_key:
         raise ValueError("TINYFISH_API_KEY is required when TINYFISH_USE_MOCK is false.")
+    logger.info("Using HttpTinyFishProvider (real TinyFish SDK)")
     return HttpTinyFishProvider()
