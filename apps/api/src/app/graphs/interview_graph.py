@@ -3,11 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-try:
-    from langgraph.graph import END, StateGraph
-except ImportError:
-    END = "__end__"  # type: ignore
-    StateGraph = None  # type: ignore
+from langgraph.graph import END, StateGraph
 
 from app.agents.evaluation_agent import EvaluationAgent
 from app.agents.job_extraction_agent import JobExtractionAgent
@@ -31,10 +27,6 @@ class InterviewWorkflow:
         self.graph = self._build_graph()
 
     def _build_graph(self):
-        if StateGraph is None:
-            # Fallback: return None when langgraph is not installed
-            return None
-
         graph = StateGraph(InterviewGraphState)
         graph.add_node("fetch_job_posting_with_tinyfish", self.fetch_job_posting_with_tinyfish)
         graph.add_node("extract_job_metadata", self.extract_job_metadata)
@@ -109,15 +101,4 @@ class InterviewWorkflow:
         return {"final_report": report}
 
     def invoke(self, state: InterviewGraphState) -> InterviewGraphState:
-        if self.graph is None:
-            # Fallback sequential execution when langgraph is not available
-            state = self.fetch_job_posting_with_tinyfish(state)
-            state = self.extract_job_metadata(state)
-            state = self.fetch_research_sources_with_tinyfish(state)
-            state = self.extract_questions(state)
-            state = self.rank_questions(state)
-            state = self.run_interview(state)
-            state = self.evaluate_answers(state)
-            state = self.generate_report(state)
-            return state
         return self.graph.invoke(state)

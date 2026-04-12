@@ -7,20 +7,9 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    BeautifulSoup = None  # type: ignore
-
-try:
-    from readability import Document
-except ImportError:
-    Document = None  # type: ignore
-
-try:
-    import trafilatura
-except ImportError:
-    trafilatura = None  # type: ignore
+from bs4 import BeautifulSoup
+from readability import Document
+import trafilatura
 
 from app.core.config import get_settings
 
@@ -95,7 +84,7 @@ class HttpTinyFishProvider(TinyFishProvider):
             from tinyfish import TinyFish
         except ImportError as exc:  # pragma: no cover
             raise RuntimeError(
-                "TinyFish SDK is not installed. Run `pip install -e '.[dev]'` in apps/api."
+                "TinyFish SDK is not installed. Run `pip install tinyfish>=0.2.5`."
             ) from exc
 
         self.client = TinyFish(api_key=self.settings.tinyfish_api_key)
@@ -155,22 +144,22 @@ class HttpTinyFishProvider(TinyFishProvider):
         html = raw.get("html") or raw.get("content") or ""
         extracted = None
 
-        # Try trafilatura first if available
-        if html and trafilatura is not None:
+        # Try trafilatura first
+        if html:
             try:
                 extracted = trafilatura.extract(html)
             except Exception:
                 pass
 
-        # Fallback to BeautifulSoup if available
-        if not extracted and html and BeautifulSoup is not None:
+        # Fallback to BeautifulSoup
+        if not extracted and html:
             try:
                 extracted = BeautifulSoup(html, "html.parser").get_text(" ", strip=True)
             except Exception:
                 pass
 
-        # Try readability if available
-        if html and Document is not None and BeautifulSoup is not None:
+        # Try readability
+        if html:
             try:
                 readable = Document(html).summary(html_partial=True)
                 readable_text = BeautifulSoup(readable, "html.parser").get_text(" ", strip=True)
