@@ -8,3 +8,6 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from app.main import app
+
+# Vercel requires the handler variable
+handler = app

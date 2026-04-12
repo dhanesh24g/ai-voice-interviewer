@@ -7,9 +7,20 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from bs4 import BeautifulSoup
-from readability import Document
-import trafilatura
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None  # type: ignore
+
+try:
+    from readability import Document
+except ImportError:
+    Document = None  # type: ignore
+
+try:
+    import trafilatura
+except ImportError:
+    trafilatura = None  # type: ignore
 
 from app.core.config import get_settings
 
@@ -142,13 +153,31 @@ class HttpTinyFishProvider(TinyFishProvider):
 
     def _post_process(self, url: str, raw: dict[str, Any]) -> TinyFishResult:
         html = raw.get("html") or raw.get("content") or ""
-        extracted = trafilatura.extract(html) if html else None
-        if not extracted and html:
-            extracted = BeautifulSoup(html, "html.parser").get_text(" ", strip=True)
-        if html:
-            readable = Document(html).summary(html_partial=True)
-            readable_text = BeautifulSoup(readable, "html.parser").get_text(" ", strip=True)
-            extracted = extracted or readable_text
+        extracted = None
+
+        # Try trafilatura first if available
+        if html and trafilatura is not None:
+            try:
+                extracted = trafilatura.extract(html)
+            except Exception:
+                pass
+
+        # Fallback to BeautifulSoup if available
+        if not extracted and html and BeautifulSoup is not None:
+            try:
+                extracted = BeautifulSoup(html, "html.parser").get_text(" ", strip=True)
+            except Exception:
+                pass
+
+        # Try readability if available
+        if html and Document is not None and BeautifulSoup is not None:
+            try:
+                readable = Document(html).summary(html_partial=True)
+                readable_text = BeautifulSoup(readable, "html.parser").get_text(" ", strip=True)
+                extracted = extracted or readable_text
+            except Exception:
+                pass
+
         return TinyFishResult(
             url=url,
             html=html,

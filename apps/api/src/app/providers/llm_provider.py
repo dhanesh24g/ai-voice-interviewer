@@ -3,7 +3,11 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from langchain_core.prompts import PromptTemplate
+try:
+    from langchain_core.prompts import PromptTemplate
+except ImportError:
+    PromptTemplate = None  # type: ignore
+
 from openai import OpenAI
 
 from app.core.config import get_settings
@@ -91,6 +95,16 @@ class OpenAILLMProvider(LLMProvider):
         self.model = settings.openai_model
         self.client = OpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url)
 
+    def _format_prompt(self, template: str, **kwargs) -> str:
+        """Format prompt with fallback when PromptTemplate is not available."""
+        if PromptTemplate is not None:
+            return PromptTemplate.from_template(template).format(**kwargs)
+        # Simple string formatting fallback
+        result = template
+        for key, value in kwargs.items():
+            result = result.replace(f"{{{key}}}", str(value))
+        return result
+
     def _json_completion(self, prompt: str) -> dict[str, Any]:
         response = self.client.chat.completions.create(
             model=self.model,
@@ -103,45 +117,45 @@ class OpenAILLMProvider(LLMProvider):
         return json.loads(response.choices[0].message.content or "{}")
 
     def extract_job_metadata(self, raw_text: str, url: str) -> dict[str, Any]:
-        prompt = PromptTemplate.from_template(
+        template = (
             "Extract company_name, role_title, job_description, confidence from this job posting for {url}:\n{raw_text}"
         )
-        return self._json_completion(prompt.format(url=url, raw_text=raw_text))
+        return self._json_completion(self._format_prompt(template, url=url, raw_text=raw_text))
 
     def extract_questions(self, context: str) -> list[dict[str, Any]]:
-        prompt = PromptTemplate.from_template(
+        template = (
             "Extract interview questions from the following research context. "
             "Return {{'questions': [{{'text': ..., 'category': ..., 'importance': 0-1}}]}}.\n{context}"
         )
-        payload = self._json_completion(prompt.format(context=context))
+        payload = self._json_completion(self._format_prompt(template, context=context))
         return payload.get("questions", [])
 
     def infer_questions_from_jd(self, company_name: str, role_title: str, job_description: str) -> list[dict[str, Any]]:
-        prompt = PromptTemplate.from_template(
+        template = (
             "Infer likely interview questions from this job description. "
             "Return {{'questions': [{{'text': ..., 'category': ..., 'importance': 0-1}}]}}.\n"
             "Company: {company_name}\nRole: {role_title}\nJob Description:\n{job_description}"
         )
         payload = self._json_completion(
-            prompt.format(company_name=company_name, role_title=role_title, job_description=job_description)
+            self._format_prompt(template, company_name=company_name, role_title=role_title, job_description=job_description)
         )
         return payload.get("questions", [])
 
     def generate_answer_guide(self, question: str, job_description: str) -> str:
-        prompt = PromptTemplate.from_template(
+        template = (
             "Return {{'guide': '...'}} with a concise interviewer answer guide.\n"
             "Question: {question}\nJob Description: {job_description}"
         )
-        payload = self._json_completion(prompt.format(question=question, job_description=job_description))
+        payload = self._json_completion(self._format_prompt(template, question=question, job_description=job_description))
         return payload.get("guide", "")
 
     def evaluate_answer(self, question: str, answer: str, job_description: str) -> dict[str, Any]:
-        prompt = PromptTemplate.from_template(
+        template = (
             "Evaluate the answer and return JSON with score, strengths, weaknesses, missing_points, suggestion.\n"
             "Question: {question}\nAnswer: {answer}\nJob Description: {job_description}"
         )
         return self._json_completion(
-            prompt.format(question=question, answer=answer, job_description=job_description)
+            self._format_prompt(template, question=question, answer=answer, job_description=job_description)
         )
 
     def answer_clarification(self, question: str) -> str:
@@ -151,12 +165,12 @@ class OpenAILLMProvider(LLMProvider):
         return payload.get("clarification", "")
 
     def generate_feedback(self, transcript: str, evaluations: list[dict[str, Any]]) -> dict[str, Any]:
-        prompt = PromptTemplate.from_template(
+        template = (
             "Generate final interview feedback. Return summary, overall_score, strengths, improvement_areas, prep_guidance.\n"
             "Transcript:\n{transcript}\nEvaluations:\n{evaluations}"
         )
         return self._json_completion(
-            prompt.format(transcript=transcript, evaluations=json.dumps(evaluations))
+            self._format_prompt(template, transcript=transcript, evaluations=json.dumps(evaluations))
         )
 
 
