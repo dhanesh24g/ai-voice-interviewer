@@ -232,6 +232,16 @@ export function VoiceInterview({
   }
 
   const handleEndInterview = async () => {
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      "Are you sure you want to end the interview?\n\n" +
+      "This will generate your final feedback report based on your answers so far."
+    )
+
+    if (!confirmed) {
+      return
+    }
+
     try {
       const stoppedSession = await stopInterviewSession(session.id)
       const report = await getInterviewFeedback(stoppedSession.id)
@@ -248,13 +258,12 @@ export function VoiceInterview({
           {Array.from({ length: totalQuestions }).map((_, index) => (
             <div
               key={index}
-              className={`w-3 h-3 rounded-full transition-all ${
-                index + 1 < progressCount
+              className={`w-3 h-3 rounded-full transition-all ${index + 1 < progressCount
                   ? "bg-primary"
                   : index + 1 === progressCount
                     ? "bg-primary animate-pulse w-4 h-4"
                     : "bg-secondary"
-              }`}
+                }`}
             />
           ))}
         </div>
@@ -269,13 +278,12 @@ export function VoiceInterview({
           <div className="flex justify-center mb-8">
             <div className="relative">
               <div
-                className={`w-32 h-32 rounded-full glass flex items-center justify-center transition-all duration-300 ${
-                  state === "speaking"
+                className={`w-32 h-32 rounded-full glass flex items-center justify-center transition-all duration-300 ${state === "speaking"
                     ? "animate-pulse-glow ring-4 ring-primary/30"
                     : state === "listening"
                       ? "ring-4 ring-destructive/30"
                       : ""
-                }`}
+                  }`}
               >
                 {state === "speaking" ? (
                   <Volume2 className="w-14 h-14 text-primary animate-pulse" />
@@ -292,13 +300,12 @@ export function VoiceInterview({
 
           <div className="text-center mb-6">
             <p
-              className={`text-sm font-medium ${
-                state === "speaking"
+              className={`text-sm font-medium ${state === "speaking"
                   ? "text-primary"
                   : state === "listening"
                     ? "text-destructive"
                     : "text-muted-foreground"
-              }`}
+                }`}
             >
               {state === "speaking"
                 ? `AI interviewer is speaking to ${firstName}...`

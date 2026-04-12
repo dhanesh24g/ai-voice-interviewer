@@ -144,8 +144,23 @@ class OpenAILLMProvider(LLMProvider):
 
     def evaluate_answer(self, question: str, answer: str, job_description: str) -> dict[str, Any]:
         template = (
-            "Evaluate the answer and return JSON with score, strengths, weaknesses, missing_points, suggestion.\n"
-            "Question: {question}\nAnswer: {answer}\nJob Description: {job_description}"
+            "You are evaluating a technical interview answer. Be strict and honest.\n\n"
+            "VALIDATION RULES:\n"
+            "1. Check if the answer actually addresses the question asked\n"
+            "2. Empty, very short (< 10 words), or off-topic answers should score < 0.3\n"
+            "3. Vague or generic answers without specifics should score 0.3-0.5\n"
+            "4. Answers with some relevant details should score 0.5-0.7\n"
+            "5. Strong, detailed, relevant answers should score 0.7-1.0\n\n"
+            "Return JSON with these fields:\n"
+            "- score (number 0-1): Quality score based on relevance and depth\n"
+            "- strengths (array of strings): What was good about the answer (empty if poor)\n"
+            "- weaknesses (array of strings): What was missing or wrong\n"
+            "- missing_points (array of strings): Key points that should have been mentioned\n"
+            "- suggestion (string): One specific improvement tip\n\n"
+            "Question: {question}\n\n"
+            "Answer: {answer}\n\n"
+            "Job Context: {job_description}\n\n"
+            "Evaluate honestly. If the answer is irrelevant or nonsensical, say so clearly."
         )
         return self._json_completion(
             PromptTemplate.from_template(template).format(question=question, answer=answer, job_description=job_description)
@@ -159,13 +174,22 @@ class OpenAILLMProvider(LLMProvider):
 
     def generate_feedback(self, transcript: str, evaluations: list[dict[str, Any]]) -> dict[str, Any]:
         template = (
-            "Generate final interview feedback. Return JSON with these exact fields:\n"
-            "- summary (string): Overall interview summary\n"
-            "- overall_score (number): 0-1 score\n"
-            "- strengths (array of strings): List of strengths\n"
-            "- improvement_areas (array of strings): List of areas to improve\n"
-            "- prep_guidance (array of strings): List of 3-5 specific preparation tips\n\n"
-            "Transcript:\n{transcript}\nEvaluations:\n{evaluations}"
+            "You are an expert interview coach analyzing a technical interview.\n\n"
+            "IMPORTANT VALIDATION RULES:\n"
+            "1. Only analyze answers that directly respond to the questions asked\n"
+            "2. Ignore empty, incomplete, or nonsensical responses\n"
+            "3. If an answer is off-topic or doesn't address the question, note it as a weakness\n"
+            "4. Base your summary ONLY on substantive question-answer pairs\n"
+            "5. If there are fewer than 3 valid answers, note that the interview was incomplete\n\n"
+            "Generate final interview feedback as JSON with these exact fields:\n"
+            "- summary (string): 2-3 sentence overall assessment based on actual answers given\n"
+            "- overall_score (number): 0-1 score (0.0-0.3 for incomplete/poor, 0.3-0.6 for average, 0.6-0.8 for good, 0.8-1.0 for excellent)\n"
+            "- strengths (array of strings): Specific strengths demonstrated in answers (cite examples)\n"
+            "- improvement_areas (array of strings): Concrete areas needing improvement (cite examples)\n"
+            "- prep_guidance (array of strings): 3-5 actionable preparation tips based on performance gaps\n\n"
+            "Interview Transcript (Q: Question, A: Answer):\n{transcript}\n\n"
+            "Individual Question Evaluations:\n{evaluations}\n\n"
+            "Analyze the quality of each answer relative to its question. Generate honest, specific feedback."
         )
         return self._json_completion(
             PromptTemplate.from_template(template).format(transcript=transcript, evaluations=json.dumps(evaluations))
