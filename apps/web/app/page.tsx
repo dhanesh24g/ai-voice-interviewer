@@ -93,7 +93,7 @@ export default function Home() {
       )}
 
       {appState === "feedback" && feedback && (
-        <FeedbackDashboard jobInput={jobInput} feedback={feedback} onRestart={handleRestart} />
+        <FeedbackDashboard jobInput={jobInput} jobTarget={jobTarget} feedback={feedback} onRestart={handleRestart} />
       )}
     </main>
   )
