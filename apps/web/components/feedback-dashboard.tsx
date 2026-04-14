@@ -106,7 +106,7 @@ export function FeedbackDashboard({ jobInput, jobTarget, feedback, onRestart }: 
 
         <div className="glass-card rounded-2xl p-6 md:p-8 neon-border mb-6 md:mb-8">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-            <div className="relative w-36 h-36 md:w-48 md:h-48 flex-shrink-0">
+            <div className="relative w-40 h-40 md:w-48 md:h-48 flex-shrink-0">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 192 192">
                 <circle
                   cx="96"
@@ -130,8 +130,8 @@ export function FeedbackDashboard({ jobInput, jobTarget, feedback, onRestart }: 
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-3xl md:text-5xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}%</span>
-                <span className="text-xs md:text-sm text-muted-foreground mt-1">Readiness Score</span>
+                <span className={`text-4xl md:text-5xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}%</span>
+                <span className="text-sm text-muted-foreground mt-1">Readiness Score</span>
               </div>
             </div>
 

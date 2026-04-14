@@ -288,7 +288,7 @@ export function VoiceInterview({
           <div className="flex justify-center mb-6 md:mb-8">
             <div className="relative">
               <div
-                className={`w-24 h-24 md:w-32 md:h-32 rounded-full glass flex items-center justify-center transition-all duration-300 ${state === "speaking"
+                className={`w-28 h-28 md:w-32 md:h-32 rounded-full glass flex items-center justify-center transition-all duration-300 ${state === "speaking"
                   ? "animate-pulse-glow ring-4 ring-primary/30"
                   : state === "listening"
                     ? "ring-4 ring-destructive/30"
@@ -296,13 +296,13 @@ export function VoiceInterview({
                   }`}
               >
                 {state === "speaking" ? (
-                  <Volume2 className="w-10 h-10 md:w-14 md:h-14 text-primary animate-pulse" />
+                  <Volume2 className="w-12 h-12 md:w-14 md:h-14 text-primary animate-pulse" />
                 ) : state === "listening" ? (
-                  <Mic className="w-10 h-10 md:w-14 md:h-14 text-destructive" />
+                  <Mic className="w-12 h-12 md:w-14 md:h-14 text-destructive" />
                 ) : state === "submitting" ? (
-                  <Loader2 className="w-10 h-10 md:w-14 md:h-14 text-primary animate-spin" />
+                  <Loader2 className="w-12 h-12 md:w-14 md:h-14 text-primary animate-spin" />
                 ) : (
-                  <Mic className="w-10 h-10 md:w-14 md:h-14 text-muted-foreground" />
+                  <Mic className="w-12 h-12 md:w-14 md:h-14 text-muted-foreground" />
                 )}
               </div>
             </div>
@@ -327,7 +327,7 @@ export function VoiceInterview({
             </p>
           </div>
 
-          <div className="bg-secondary/50 rounded-xl p-4 md:p-6 mb-4 md:mb-6">
+          <div className="bg-secondary/50 rounded-xl p-5 md:p-6 mb-5 md:mb-6">
             <p className="text-base md:text-xl text-foreground text-center leading-relaxed">
               &ldquo;{currentQuestion}&rdquo;
             </p>
@@ -354,7 +354,7 @@ export function VoiceInterview({
               value={transcript}
               onChange={(event) => setTranscript(event.target.value)}
               placeholder="Type your answer here if you prefer text input or want to edit the speech transcript before sending."
-              className="min-h-[100px] md:min-h-[120px] bg-secondary/50 border-border/50 focus:border-primary"
+              className="min-h-[120px] md:min-h-[120px] text-base bg-secondary/50 border-border/50 focus:border-primary"
             />
           </div>
 
@@ -366,7 +366,7 @@ export function VoiceInterview({
                 size="lg"
                 onClick={handleStartRecording}
                 disabled={!speechSupported || state === "speaking" || state === "submitting"}
-                className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+                className="min-h-[48px] px-8 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
               >
                 <Mic className="w-5 h-5 mr-2" />
                 {speechSupported ? "Start Voice Answer" : "Speech Not Supported"}
@@ -376,7 +376,7 @@ export function VoiceInterview({
                 size="lg"
                 variant="destructive"
                 onClick={handleStopRecording}
-                className="h-14 px-8 text-lg font-semibold"
+                className="min-h-[48px] px-8 text-base font-semibold"
               >
                 <MicOff className="w-5 h-5 mr-2" />
                 Stop Recording
@@ -387,7 +387,7 @@ export function VoiceInterview({
               size="lg"
               onClick={handleSubmitAnswer}
               disabled={state === "speaking" || state === "submitting"}
-              className="h-14 px-8 text-lg font-semibold bg-primary/90 hover:bg-primary text-primary-foreground"
+              className="min-h-[48px] px-8 text-base font-semibold bg-primary/90 hover:bg-primary text-primary-foreground"
             >
               <Send className="w-5 h-5 mr-2" />
               Submit Answer
