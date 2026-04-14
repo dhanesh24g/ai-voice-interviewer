@@ -61,6 +61,7 @@ class MockLLMProvider(LLMProvider):
         score = 0.82 if answer else 0.25
         return {
             "score": score,
+            "role_alignment": 0.78 if answer else 0.1,
             "strengths": ["Structured response", "Relevant examples"] if answer else [],
             "weaknesses": ["Could quantify impact more"],
             "missing_points": ["Explicit alignment to job requirements"],
@@ -75,6 +76,9 @@ class MockLLMProvider(LLMProvider):
         return {
             "summary": "Strong foundation with room to add clearer impact and tighter role alignment.",
             "overall_score": avg_score,
+            "role_alignment": 0.78,
+            "answer_quality": avg_score,
+            "improvement_momentum": 0.3,
             "strengths": ["Good structure", "Solid technical reasoning"],
             "improvement_areas": ["Quantify outcomes", "Make company fit more explicit"],
             "prep_guidance": [
@@ -153,6 +157,7 @@ class OpenAILLMProvider(LLMProvider):
             "5. Strong, detailed, relevant answers should score 0.7-1.0\n\n"
             "Return JSON with these fields:\n"
             "- score (number 0-1): Quality score based on relevance and depth\n"
+            "- role_alignment (number 0-1): How clearly the answer maps to the role, job requirements, company context, and question intent\n"
             "- strengths (array of strings): What was good about the answer (empty if poor)\n"
             "- weaknesses (array of strings): What was missing or wrong\n"
             "- missing_points (array of strings): Key points that should have been mentioned\n"
@@ -184,6 +189,9 @@ class OpenAILLMProvider(LLMProvider):
             "Generate final interview feedback as JSON with these exact fields:\n"
             "- summary (string): 2-3 sentence overall assessment based on actual answers given\n"
             "- overall_score (number): 0-1 score (0.0-0.3 for incomplete/poor, 0.3-0.6 for average, 0.6-0.8 for good, 0.8-1.0 for excellent)\n"
+            "- role_alignment (number): 0-1 score for how consistently answers map to the role requirements and company context\n"
+            "- answer_quality (number): 0-1 score for answer relevance, specificity, structure, and depth\n"
+            "- improvement_momentum (number): 0-1 score for whether later answers improved compared with earlier answers\n"
             "- strengths (array of strings): Specific strengths demonstrated in answers (cite examples)\n"
             "- improvement_areas (array of strings): Concrete areas needing improvement (cite examples)\n"
             "- prep_guidance (array of strings): 3-5 actionable preparation tips based on performance gaps\n\n"

@@ -51,6 +51,9 @@ export interface FeedbackReportResponse {
   session_id: number
   summary: string
   overall_score: number
+  role_alignment: number
+  answer_quality: number
+  improvement_momentum: number
   strengths: string[]
   improvement_areas: string[]
   prep_guidance: string[]

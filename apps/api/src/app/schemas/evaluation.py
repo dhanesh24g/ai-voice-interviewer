@@ -28,6 +28,9 @@ class FeedbackReportResponse(ORMBaseModel):
     session_id: int
     summary: str
     overall_score: float
+    role_alignment: float = 0.0
+    answer_quality: float = 0.0
+    improvement_momentum: float = 0.0
     strengths: list[str]
     improvement_areas: list[str]
     prep_guidance: list[str]

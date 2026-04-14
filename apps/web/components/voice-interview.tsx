@@ -149,18 +149,18 @@ export function VoiceInterview({
     setTranscript("")
     setInterimTranscript("")
     setError(null)
-    setState("speaking")
+    setState((prev) => (prev === "submitting" ? prev : "speaking"))
 
     const utterance = new SpeechSynthesisUtterance(currentQuestion)
     utterance.rate = 0.98
     utterance.pitch = 1
-    utterance.onend = () => setState("idle")
+    utterance.onend = () => setState((prev) => (prev === "submitting" ? prev : "idle"))
 
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel()
       window.speechSynthesis.speak(utterance)
     } else {
-      const timer = globalThis.setTimeout(() => setState("idle"), 1800)
+      const timer = globalThis.setTimeout(() => setState((prev) => (prev === "submitting" ? prev : "idle")), 1800)
       return () => globalThis.clearTimeout(timer)
     }
 
@@ -206,6 +206,9 @@ export function VoiceInterview({
 
     setState("submitting")
     setError(null)
+    window.speechSynthesis?.cancel()
+    recognitionRef.current?.stop()
+    setIsRecording(false)
 
     try {
       const updatedSession = await sendInterviewEvent(session.id, {
@@ -242,12 +245,19 @@ export function VoiceInterview({
       return
     }
 
+    setState("submitting")
+    setError(null)
+    window.speechSynthesis?.cancel()
+    recognitionRef.current?.stop()
+    setIsRecording(false)
+
     try {
       const stoppedSession = await stopInterviewSession(session.id)
       const report = await getInterviewFeedback(stoppedSession.id)
       onComplete(report, stoppedSession)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to end interview")
+      setState("idle")
     }
   }
 
@@ -259,10 +269,10 @@ export function VoiceInterview({
             <div
               key={index}
               className={`w-3 h-3 rounded-full transition-all ${index + 1 < progressCount
-                  ? "bg-primary"
-                  : index + 1 === progressCount
-                    ? "bg-primary animate-pulse w-4 h-4"
-                    : "bg-secondary"
+                ? "bg-primary"
+                : index + 1 === progressCount
+                  ? "bg-primary animate-pulse w-4 h-4"
+                  : "bg-secondary"
                 }`}
             />
           ))}
@@ -279,10 +289,10 @@ export function VoiceInterview({
             <div className="relative">
               <div
                 className={`w-32 h-32 rounded-full glass flex items-center justify-center transition-all duration-300 ${state === "speaking"
-                    ? "animate-pulse-glow ring-4 ring-primary/30"
-                    : state === "listening"
-                      ? "ring-4 ring-destructive/30"
-                      : ""
+                  ? "animate-pulse-glow ring-4 ring-primary/30"
+                  : state === "listening"
+                    ? "ring-4 ring-destructive/30"
+                    : ""
                   }`}
               >
                 {state === "speaking" ? (
@@ -301,10 +311,10 @@ export function VoiceInterview({
           <div className="text-center mb-6">
             <p
               className={`text-sm font-medium ${state === "speaking"
-                  ? "text-primary"
-                  : state === "listening"
-                    ? "text-destructive"
-                    : "text-muted-foreground"
+                ? "text-primary"
+                : state === "listening"
+                  ? "text-destructive"
+                  : "text-muted-foreground"
                 }`}
             >
               {state === "speaking"
@@ -312,7 +322,7 @@ export function VoiceInterview({
                 : state === "listening"
                   ? "Listening for your answer..."
                   : state === "submitting"
-                    ? "Submitting your answer..."
+                    ? "Generating your feedback report..."
                     : "Ready when you are"}
             </p>
           </div>
@@ -389,9 +399,18 @@ export function VoiceInterview({
           <p className="text-sm text-muted-foreground text-center sm:text-left">
             Voice mode uses browser text-to-speech for the AI and browser speech-to-text for your answer. You can always edit or type before sending.
           </p>
-          <Button variant="outline" onClick={handleEndInterview}>
-            <CheckCircle2 className="w-4 h-4 mr-2" />
-            End Interview
+          <Button variant="outline" onClick={handleEndInterview} disabled={state === "submitting"}>
+            {state === "submitting" ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                End Interview
+              </>
+            )}
           </Button>
         </div>
       </div>

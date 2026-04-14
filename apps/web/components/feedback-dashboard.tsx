@@ -1,19 +1,27 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { AlertCircle, Award, CheckCircle2, Lightbulb, RefreshCw } from "lucide-react"
+import { AlertCircle, Award, CheckCircle2, Download, Lightbulb, RefreshCw } from "lucide-react"
 import type { JobInput } from "@/app/page"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import type { FeedbackReportResponse } from "@/lib/api"
+import type { FeedbackReportResponse, JobTargetResponse } from "@/lib/api"
 
 interface FeedbackDashboardProps {
   jobInput: JobInput
+  jobTarget: JobTargetResponse | null
   feedback: FeedbackReportResponse
   onRestart: () => void
 }
 
-export function FeedbackDashboard({ jobInput, feedback, onRestart }: FeedbackDashboardProps) {
+function normalizePercent(value: number | null | undefined, fallback: number) {
+  const raw = Number(value ?? fallback)
+  if (!Number.isFinite(raw)) return Math.max(0, Math.min(100, Math.round(fallback)))
+  const percent = raw <= 1 ? raw * 100 : raw
+  return Math.max(0, Math.min(100, Math.round(percent)))
+}
+
+export function FeedbackDashboard({ jobInput, jobTarget, feedback, onRestart }: FeedbackDashboardProps) {
   const [animatedScores, setAnimatedScores] = useState<Record<string, number>>({})
   const [overallScore, setOverallScore] = useState(0)
 
@@ -24,14 +32,18 @@ export function FeedbackDashboard({ jobInput, feedback, onRestart }: FeedbackDas
     return Math.max(0, Math.min(100, Math.round(percent)))
   }, [feedback.overall_score])
 
+  const roleAlignmentScore = normalizePercent(feedback.role_alignment, normalizedOverallScore * 0.9)
+  const answerQualityScore = normalizePercent(feedback.answer_quality, normalizedOverallScore * 0.85)
+  const improvementMomentumScore = normalizePercent(feedback.improvement_momentum, 30)
+
   const scores = useMemo(
     () => [
       { label: "Overall Readiness", value: normalizedOverallScore },
-      { label: "Role Alignment", value: Math.min(100, Math.max(60, normalizedOverallScore - 4)) },
-      { label: "Answer Quality", value: Math.min(100, Math.max(55, normalizedOverallScore - 8)) },
-      { label: "Improvement Momentum", value: Math.min(95, Math.max(0, normalizedOverallScore + 6)) },
+      { label: "Role Alignment", value: roleAlignmentScore },
+      { label: "Answer Quality", value: answerQualityScore },
+      { label: "Improvement Momentum", value: improvementMomentumScore },
     ],
-    [normalizedOverallScore],
+    [normalizedOverallScore, roleAlignmentScore, answerQualityScore, improvementMomentumScore],
   )
 
   const calculatedOverall = Math.round(scores.reduce((acc, score) => acc + score.value, 0) / scores.length)
@@ -197,14 +209,66 @@ export function FeedbackDashboard({ jobInput, feedback, onRestart }: FeedbackDas
           </div>
         </div>
 
-        <Button
-          size="lg"
-          onClick={onRestart}
-          className="w-full h-14 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/25"
-        >
-          <RefreshCw className="w-5 h-5 mr-2" />
-          Start New Interview Practice
-        </Button>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => {
+              const reportContent = `
+INTERVIEW PERFORMANCE REPORT
+==============================
+Candidate: ${jobInput.firstName}
+Role: ${jobTarget?.role_title || "N/A"}
+Company: ${jobTarget?.company_name || "N/A"}
+Date: ${new Date().toLocaleDateString()}
+
+SCORES
+------
+Overall Readiness: ${normalizedOverallScore}%
+Role Alignment: ${roleAlignmentScore}%
+Answer Quality: ${answerQualityScore}%
+Improvement Momentum: ${improvementMomentumScore}%
+
+OVERALL VERDICT
+---------------
+${feedback.summary}
+
+STRENGTHS
+---------
+${feedback.strengths.map((s) => `• ${s}`).join("\n")}
+
+AREAS TO IMPROVE
+----------------
+${feedback.improvement_areas.map((a) => `• ${a}`).join("\n")}
+
+PREPARATION TIPS
+----------------
+${feedback.prep_guidance.map((t) => `• ${t}`).join("\n")}
+              `.trim()
+              const blob = new Blob([reportContent], { type: "text/plain" })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement("a")
+              a.href = url
+              a.download = `interview-report-${jobInput.firstName.toLowerCase().replace(/\s+/g, "-") || "candidate"}-${new Date().toISOString().split("T")[0]}.txt`
+              document.body.appendChild(a)
+              a.click()
+              document.body.removeChild(a)
+              URL.revokeObjectURL(url)
+            }}
+            className="h-14 text-lg font-semibold border-primary/30 hover:bg-primary/10"
+          >
+            <Download className="w-5 h-5 mr-2" />
+            Download Report
+          </Button>
+          <Button
+            size="lg"
+            onClick={onRestart}
+            className="h-14 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/25"
+          >
+            <RefreshCw className="w-5 h-5 mr-2" />
+            Start New Interview
+          </Button>
+        </div>
       </div>
     </div>
   )
