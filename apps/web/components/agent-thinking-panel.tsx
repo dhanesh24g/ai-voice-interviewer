@@ -177,14 +177,14 @@ export function AgentThinkingPanel({ jobInput, onComplete, onBack }: AgentThinki
   }, [attempt, jobInput, onComplete])
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 md:py-12">
       <div className="max-w-5xl w-full">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full glass neon-border mb-4 animate-pulse-glow">
-            <Brain className="w-10 h-10 text-primary animate-pulse" />
+        <div className="text-center mb-6 md:mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full glass neon-border mb-4 animate-pulse-glow">
+            <Brain className="w-8 h-8 md:w-10 md:h-10 text-primary animate-pulse" />
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">TinyFish Is Working</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl md:text-3xl font-bold text-foreground mb-2">TinyFish Is Working</h2>
+          <p className="text-sm md:text-base text-muted-foreground">
             TinyFish is browsing the job posting, collecting interview intelligence, and preparing the live session for{" "}
             <span className="text-primary font-medium">{jobInput.firstName}</span>
           </p>
@@ -259,31 +259,31 @@ export function AgentThinkingPanel({ jobInput, onComplete, onBack }: AgentThinki
             })}
           </div>
 
-          <div className="glass-card rounded-xl p-4 neon-border h-[420px] md:h-auto">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/50">
-              <div className="w-3 h-3 rounded-full bg-destructive/80" />
-              <div className="w-3 h-3 rounded-full bg-warning" />
-              <div className="w-3 h-3 rounded-full bg-primary" />
-              <span className="ml-2 text-sm text-muted-foreground font-mono">tinyfish.scrape.log</span>
+          <div className="glass-card rounded-xl p-3 md:p-4 neon-border h-[320px] md:h-auto">
+            <div className="flex items-center gap-2 mb-3 md:mb-4 pb-2 md:pb-3 border-b border-border/50">
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-destructive/80" />
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-warning" />
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-primary" />
+              <span className="ml-2 text-xs md:text-sm text-muted-foreground font-mono">tinyfish.scrape.log</span>
             </div>
 
-            <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                  <Bot className="w-5 h-5" />
+            <div className="mb-3 md:mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 md:p-4">
+              <div className="flex items-center gap-2 md:gap-3 mb-2">
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <Bot className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">TinyFish browser worker</p>
+                  <p className="text-xs md:text-sm font-semibold text-foreground">TinyFish browser worker</p>
                   <p className="text-xs text-muted-foreground">Interactive scraping for JS-rendered job and research pages</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-primary">
-                <Sparkles className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-xs md:text-sm text-primary">
+                <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
                 <span>Collecting company, role, and interview-source signals from the web</span>
               </div>
             </div>
 
-            <div className="font-mono text-sm space-y-1 overflow-y-auto max-h-[280px] md:max-h-[320px]">
+            <div className="font-mono text-xs md:text-sm space-y-1 overflow-y-auto max-h-[200px] md:max-h-[320px]">
               {logs.map((log, index) => (
                 <div
                   key={index}

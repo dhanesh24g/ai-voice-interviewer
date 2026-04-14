@@ -284,11 +284,11 @@ export function VoiceInterview({
           </span>
         </div>
 
-        <div className="glass-card rounded-3xl p-8 md:p-12 neon-border mb-8">
-          <div className="flex justify-center mb-8">
+        <div className="glass-card rounded-3xl p-6 md:p-12 neon-border mb-6 md:mb-8">
+          <div className="flex justify-center mb-6 md:mb-8">
             <div className="relative">
               <div
-                className={`w-32 h-32 rounded-full glass flex items-center justify-center transition-all duration-300 ${state === "speaking"
+                className={`w-24 h-24 md:w-32 md:h-32 rounded-full glass flex items-center justify-center transition-all duration-300 ${state === "speaking"
                   ? "animate-pulse-glow ring-4 ring-primary/30"
                   : state === "listening"
                     ? "ring-4 ring-destructive/30"
@@ -296,13 +296,13 @@ export function VoiceInterview({
                   }`}
               >
                 {state === "speaking" ? (
-                  <Volume2 className="w-14 h-14 text-primary animate-pulse" />
+                  <Volume2 className="w-10 h-10 md:w-14 md:h-14 text-primary animate-pulse" />
                 ) : state === "listening" ? (
-                  <Mic className="w-14 h-14 text-destructive" />
+                  <Mic className="w-10 h-10 md:w-14 md:h-14 text-destructive" />
                 ) : state === "submitting" ? (
-                  <Loader2 className="w-14 h-14 text-primary animate-spin" />
+                  <Loader2 className="w-10 h-10 md:w-14 md:h-14 text-primary animate-spin" />
                 ) : (
-                  <Mic className="w-14 h-14 text-muted-foreground" />
+                  <Mic className="w-10 h-10 md:w-14 md:h-14 text-muted-foreground" />
                 )}
               </div>
             </div>
@@ -327,8 +327,8 @@ export function VoiceInterview({
             </p>
           </div>
 
-          <div className="bg-secondary/50 rounded-xl p-6 mb-6">
-            <p className="text-lg md:text-xl text-foreground text-center leading-relaxed">
+          <div className="bg-secondary/50 rounded-xl p-4 md:p-6 mb-4 md:mb-6">
+            <p className="text-base md:text-xl text-foreground text-center leading-relaxed">
               &ldquo;{currentQuestion}&rdquo;
             </p>
           </div>
@@ -354,7 +354,7 @@ export function VoiceInterview({
               value={transcript}
               onChange={(event) => setTranscript(event.target.value)}
               placeholder="Type your answer here if you prefer text input or want to edit the speech transcript before sending."
-              className="min-h-[120px] bg-secondary/50 border-border/50 focus:border-primary"
+              className="min-h-[100px] md:min-h-[120px] bg-secondary/50 border-border/50 focus:border-primary"
             />
           </div>
 
