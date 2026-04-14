@@ -5,6 +5,7 @@ import { AgentThinkingPanel } from "@/components/agent-thinking-panel"
 import { FeedbackDashboard } from "@/components/feedback-dashboard"
 import { HeroSection } from "@/components/hero-section"
 import { VoiceInterview } from "@/components/voice-interview"
+import { ThemeToggle } from "@/components/theme-toggle"
 import type {
   FeedbackReportResponse,
   InterviewSessionResponse,
@@ -71,7 +72,12 @@ export default function Home() {
   }, [])
 
   return (
-    <main className="min-h-screen gradient-bg">
+    <main className="min-h-screen gradient-bg relative">
+      {/* Theme Toggle - Fixed Position */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       {appState === "hero" && <HeroSection onStartResearch={handleStartResearch} />}
 
       {appState === "thinking" && (
