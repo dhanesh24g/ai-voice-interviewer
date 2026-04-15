@@ -49,7 +49,7 @@ export function HeroSection({ onStartResearch }: HeroSectionProps) {
           </div>
           <div className="text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-5">
-              <span className="neon-text text-primary">AI Voice</span>{" "}
+              <span className="ai-voice-text">AI Voice</span>{" "}
               <span className="text-foreground">Interview Agent</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
